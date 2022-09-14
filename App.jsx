@@ -1,7 +1,6 @@
-import { Button, FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-
-import { useState } from 'react';
-
+import { AddTask, CustomModal } from './components/index';
+import { Button, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react'
 //Estilos 
 
 const styles = StyleSheet.create({
@@ -60,15 +59,17 @@ const styles = StyleSheet.create({
 export default function App() {
 
   const [task, setTask] = useState(''); //Hook de tarea
-  const [tasks, setTasks] = useState([]); //Hook de arreglo de tareas
+  const [tasks, setTasks] = useState([{id: 1, value: 'hola'}]); //Hook de arreglo de tareas
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null)
-  const onHandleChangeText = (text) => {
-    setTask(text);
-  }
 
   console.warn('task', task)
   console.warn('tasks', tasks)
+
+  const onHandleChangeText = (text) => {
+    console.warn('text', text);
+    setTask(text);
+  }
 
   const addItem = () => {
     setTasks((prevTasks) => [
@@ -78,11 +79,11 @@ export default function App() {
     setTask('')
   }
 
-  const onHandleDeleteItem = (id) => {
-    setModalVisible(!modalVisible)
+  const onHandleModal = (id) => {
+    setModalVisible(!modalVisible);
     setSelectedTask(tasks.find((item) => item.id === id))
-    console.warn(id)
   }
+  
   const renderItem = ({ item }) => (
     <View style={styles.itemContainer}>
       <Text style={styles.item}>{item.value}</Text>
@@ -91,37 +92,56 @@ export default function App() {
       </TouchableOpacity>
     </View>
   )
+
+  const onHandleDeleteItem = (id) => {
+    setTasks(tasks.filter((item) => item.id !== id));
+    setSelectedTask(null);
+    setModalVisible(!modalVisible);
+  }
+  
+  
   return (
     <View style={styles.container}>
-      <View style={styles.inputContainer}>
-        <TextInput 
-        placeholder='New task' 
-        style={styles.input} 
+      <AddTask 
+        item={task}
+        onChangeText={onHandleChangeText}
+        placeholder='new task'
+        addItem={addItem}
         selectionColor='#4A306D'
         placeholderTextColor='#4A306D'
-        onChangeText={onHandleChangeText}
-        value={task}
-        />
-        <Button 
-        title='add' 
-        onPress={(addItem)} 
+        textButton='ADD'
         color='#4A306D'
-        />
-      </View>
+      />
       <FlatList
         style={styles.itemList}
         data={tasks}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
-      >
-      </FlatList>
-      <Modal
-        animationType='slide'
-        visible={modalVisible}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modal}>Detalle de la lista</Text>
-          </View>
-      </Modal>
+        showsVerticalScrollIndicator={false}
+      />
+      <CustomModal animationType='slide' visible={modalVisible}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Detalle de la lista</Text>
+        </View>
+        <View style={styles.modalMessageContainer}> 
+          <Text style={styles.modalMessage}>¿Estas seguro de que quieres eliminar?</Text>
+        </View>
+        <View style={styles.modalMessageContainer}> 
+          <Text style={styles.selectedTask}>{selectedTask?.value}</Text>
+        </View>
+        <View style={styles.buttonContainer}>
+          <Button 
+            title='Eliminar'
+            onPress={() => onHandleDeleteItem(selectedTask?.id)}
+            color='#4A306D'
+          />
+          <Button 
+            title='Cancelar'
+            onPress={() => setModalVisible(!modalVisible)}
+            color='#cccccc'
+          />
+        </View>
+      </CustomModal>
     </View>
   );
 }
